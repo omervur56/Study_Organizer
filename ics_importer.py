@@ -11,7 +11,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # 2. ICS-Datei abrufen
 # Alternativ: open('lokaler_kalender.ics', 'rb').read() für lokale Dateien
-ICS_URL = "https://cis.hochschule-burgenland.at/cis/private/lvplan/stpl_kalender.php?type=student&pers_uid=2610913016&ort_kurzbz=&stg_kz=913&sem=1&ver=B&grp=1&gruppe_kurzbz=&lva=&begin=1788213600&ende=1802905200&format=ical&version=1&target=ical"
+ICS_URL = "https://cis.hochschule-burgenland.at/webdav/google.php?cal=Ae6CRxpBgMmgHC2ard9n_UUCoVmOPiZc8as1Mi0Hkg0&1789674830.727"
 
 def fetch_and_parse_ics(url):
     print(f"Lade Kalender von {url} herunter...")

@@ -4,8 +4,8 @@ from icalendar import Calendar
 from supabase import create_client, Client
 
 # 1. Supabase Konfiguration (Am besten als Umgebungsvariablen setzen)
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://deine-projekt-id.supabase.co")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "dein-service-role-key")
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://oopyvbofzrqytqlifetw.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vcHl2Ym9menJxeXRxbGlmZXR3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4OTY2NzY0NSwiZXhwIjoyMTA1MjQzNjQ1fQ.kUycvxJvR7eLxWCbgM-NUMwSpbZB9WiXD1bzNWpuBRo")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 

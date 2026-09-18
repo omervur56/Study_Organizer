@@ -3,16 +3,16 @@ import { View, Text, FlatList, StyleSheet, SafeAreaView, ActivityIndicator, Touc
 import { supabase } from '../../supabase';
 
 export default function App() {
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [nextImportant, setNextImportant] = useState(null);
+  const [nextImportant, setNextImportant] = useState<any | null>(null);
   const [timeLeft, setTimeLeft] = useState('');
   
   const [isGridView, setIsGridView] = useState(false);
 
   // Modal State
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editType, setEditType] = useState('lecture');
 
@@ -21,7 +21,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    let interval;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (nextImportant) {
       updateCountdown();
       interval = setInterval(updateCountdown, 60000);
@@ -41,8 +41,9 @@ export default function App() {
       if (error) throw error;
       
       if (data) {
-        setEvents(data);
-        const upcomingImportant = data.find(event => event.type === 'exam' || event.type === 'project');
+        const safeData = data as any[];
+        setEvents(safeData);
+        const upcomingImportant = safeData.find((event: any) => event.type === 'exam' || event.type === 'project');
         if (upcomingImportant) {
           setNextImportant(upcomingImportant);
         } else {
@@ -79,7 +80,7 @@ export default function App() {
     setTimeLeft(timeString);
   }
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString('de-AT', {
       weekday: 'short', day: '2-digit', month: '2-digit', 
@@ -87,9 +88,9 @@ export default function App() {
     });
   };
 
-  const openEditModal = (item) => {
+  const openEditModal = (item: any) => {
     setSelectedEvent(item);
-    setEditTitle(item.custom_title || ''); // Wenn kein custom_title da ist, Feld leer lassen
+    setEditTitle(item.custom_title || '');
     setEditType(item.type || 'lecture');
     setModalVisible(true);
   };
@@ -129,7 +130,34 @@ export default function App() {
     }
   };
 
-  const importantList = events.filter(item => item.type === 'exam' || item.type === 'project');
+  const importantList = events.filter((item: any) => item.type === 'exam' || item.type === 'project');
+
+  const sortedEvents = [...events].sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+
+  const monthSections = Object.values(
+    sortedEvents.reduce(
+      (groups: Record<string, { key: string; label: string; items: any[] }>, item: any) => {
+        const date = new Date(item.start_time);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`;
+
+        if (!groups[monthKey]) {
+          groups[monthKey] = {
+            key: monthKey,
+            label: date.toLocaleString('de-AT', { month: 'long', year: 'numeric' }),
+            items: []
+          };
+        }
+
+        groups[monthKey].items.push(item);
+        return groups;
+      },
+      {} as Record<string, { key: string; label: string; items: any[] }>
+    )
+  ).sort((a, b) => {
+    const [yearA, monthA] = a.key.split('-').map(Number);
+    const [yearB, monthB] = b.key.split('-').map(Number);
+    return yearA - yearB || monthA - monthB;
+  });
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
@@ -197,50 +225,60 @@ export default function App() {
           <ActivityIndicator size="large" color="#3B82F6" />
         </View>
       ) : (
-        <FlatList 
-          key={isGridView ? 'grid-view' : 'list-view'} // WICHTIG: Zwingt die Liste zum Neuladen beim Wechsel
-          data={events}
-          numColumns={isGridView ? 2 : 1}
-          columnWrapperStyle={isGridView ? styles.gridRow : undefined}
-          keyExtractor={(item) => item.id}
+        <FlatList
+          key={isGridView ? 'grid-view' : 'list-view'}
+          data={monthSections}
+          keyExtractor={(item) => item.key}
           ListHeaderComponent={renderHeader}
           contentContainerStyle={styles.listContent}
-          renderItem={({item}) => {
-            const displayTitle = item.custom_title || item.title;
-            const isExam = item.type === 'exam';
-            const isProject = item.type === 'project';
-            
-            return (
-              <View style={[
-                styles.card, 
-                isGridView ? styles.gridCard : styles.listCard,
-                isExam && styles.examCard,
-                isProject && styles.projectCard
-              ]}>
-                <View style={[styles.cardHeader, isGridView && styles.gridCardHeader]}>
-                  <Text style={[styles.title, isGridView && styles.gridTitle]} numberOfLines={isGridView ? 3 : 2}>
-                    {displayTitle}
-                  </Text>
-                  
-                  <TouchableOpacity onPress={() => openEditModal(item)} style={styles.editButton}>
-                    <Text style={styles.editButtonText}>✏️{!isGridView && ' BEARBEITEN'}</Text>
-                  </TouchableOpacity>
-                </View>
-                
-                <View style={[styles.cardFooter, isGridView && styles.gridCardFooter]}>
-                  <View>
-                    <Text style={styles.time}>{formatDate(item.start_time)}</Text>
-                    {item.location ? <Text style={styles.location} numberOfLines={1}>{item.location}</Text> : null}
+          renderItem={({ item: month }) => {
+            const cards = month.items.map((event: any) => {
+              const displayTitle = event.custom_title || event.title;
+              const isExam = event.type === 'exam';
+              const isProject = event.type === 'project';
+
+              return (
+                <View
+                  key={event.id}
+                  style={[
+                    styles.card,
+                    isGridView ? styles.gridCard : styles.listCard,
+                    isExam && styles.examCard,
+                    isProject && styles.projectCard
+                  ]}
+                >
+                  <View style={[styles.cardHeader, isGridView && styles.gridCardHeader]}>
+                    <Text style={[styles.title, isGridView && styles.gridTitle]} numberOfLines={isGridView ? 3 : 2}>
+                      {displayTitle}
+                    </Text>
+
+                    <TouchableOpacity onPress={() => openEditModal(event)} style={styles.editButton}>
+                      <Text style={styles.editButtonText}>✏️{!isGridView && ' BEARBEITEN'}</Text>
+                    </TouchableOpacity>
                   </View>
-                  
-                  {(isExam || isProject) && (
-                    <View style={[styles.examBadge, isProject && styles.projectBadge, isGridView && {marginTop: 8}]}>
-                      <Text style={styles.examBadgeText}>
-                        {isProject ? 'Projekt' : 'Prüfung'}
-                      </Text>
+
+                  <View style={[styles.cardFooter, isGridView && styles.gridCardFooter]}>
+                    <View>
+                      <Text style={styles.time}>{formatDate(event.start_time)}</Text>
+                      {event.location ? <Text style={styles.location} numberOfLines={1}>{event.location}</Text> : null}
                     </View>
-                  )}
+
+                    {(isExam || isProject) && (
+                      <View style={[styles.examBadge, isProject && styles.projectBadge, isGridView && { marginTop: 8 }]}>
+                        <Text style={styles.examBadgeText}>
+                          {isProject ? 'Projekt' : 'Prüfung'}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
+              );
+            });
+
+            return (
+              <View style={styles.monthSection}>
+                <Text style={styles.monthHeader}>{month.label}</Text>
+                {isGridView ? <View style={styles.gridWrap}>{cards}</View> : cards}
               </View>
             );
           }}
@@ -346,10 +384,13 @@ const styles = StyleSheet.create({
   toggleBtnTextActive: { color: '#111827' },
 
   gridRow: { justifyContent: 'space-between' },
+  monthSection: { width: '100%', marginBottom: 16, marginTop: 6 },
+  monthHeader: { fontSize: 16, fontWeight: '700', color: '#374151', paddingBottom: 8 },
+  gridWrap: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8 },
 
   card: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, borderLeftWidth: 4, borderLeftColor: '#3B82F6', elevation: 2 },
   listCard: { marginBottom: 12 },
-  gridCard: { width: '48%', marginBottom: 12, padding: 12 },
+  gridCard: { width: '32%', aspectRatio: 1, marginBottom: 8, padding: 8, justifyContent: 'space-between' },
   
   examCard: { borderLeftColor: '#EF4444', backgroundColor: '#FFFBFA' },
   projectCard: { borderLeftColor: '#F97316', backgroundColor: '#FFFBF5' },

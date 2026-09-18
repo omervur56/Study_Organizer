@@ -13,60 +13,89 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Alternativ: open('lokaler_kalender.ics', 'rb').read() für lokale Dateien
 ICS_URL = "https://cis.hochschule-burgenland.at/webdav/google.php?cal=Ae6CRxpBgMmgHC2ard9n_UUCoVmOPiZc8as1Mi0Hkg0&1789674830.727"
 
-def fetch_and_parse_ics(url):
-    print(f"Lade Kalender von {url} herunter...")
-    response = requests.get(url)
-    response.raise_for_status() # Bricht ab, falls der Download fehlschlägt
+def fetch_ics():
+    """Lädt die ICS-Datei über den Token-Link herunter."""
+    print("Lade Stundenplan über Token-Link herunter...")
+    headers = {'User-Agent': 'Mozilla/5.0'}
     
-    # Kalender-Objekt parsen
-    cal = Calendar.from_ical(response.content)
+    try:
+        response = requests.get(ICS_URL, headers=headers)
+        response.raise_for_status()
+        if "BEGIN:VCALENDAR" not in response.text:
+            print("FEHLER: Keine gültige ICS-Datei.")
+            return None
+        print("ICS-Datei erfolgreich empfangen.")
+        return response.content
+    except requests.exceptions.RequestException as e:
+        print(f"Netzwerk/HTTP-Fehler: {e}")
+        return None
+
+def parse_and_sync(ics_content):
+    if not ics_content:
+        return
+        
+    print("Verarbeite Kalenderdaten...")
+    cal = Calendar.from_ical(ics_content)
+    
+    # 1. Bestehende Termine aus Supabase laden, um den 'type' zu retten!
+    existing_types = {}
+    existing_custom_titles = {} # NEU: Wörterbuch für custom titles
+    try:
+        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        existing_data = supabase.table('study_events').select('id, type, custom_title').execute() # NEU: custom_title mit abfragen
+        existing_types = {item['id']: item['type'] for item in existing_data.data}
+        existing_custom_titles = {item['id']: item.get('custom_title') for item in existing_data.data} # NEU: custom titles speichern
+    except Exception as e:
+        print(f"Fehler beim Abrufen bestehender Termine: {e}")
+
     events_to_upsert = []
 
     for component in cal.walk():
         if component.name == "VEVENT":
-            # Wichtige Felder extrahieren
             uid = str(component.get('uid'))
-            title = str(component.get('summary'))
+            title = str(component.get('summary', 'Ohne Titel'))
+            dtstart = component.get('dtstart')
+            dtend = component.get('dtend')
             
-            # Start- und Endzeitpunkte als ISO-Strings für PostgreSQL aufbereiten
-            dtstart = component.get('dtstart').dt
-            dtend = component.get('dtend').dt if component.get('dtend') else None
-            
+            if not dtstart:
+                continue
+                
+            start_iso = dtstart.dt.isoformat() if hasattr(dtstart.dt, 'isoformat') else str(dtstart.dt)
+            end_iso = dtend.dt.isoformat() if dtend and hasattr(dtend.dt, 'isoformat') else str(dtend.dt) if dtend else None
             location = str(component.get('location', ''))
             description = str(component.get('description', ''))
 
-            # Simpler Check, ob es eine Prüfung ist (z.B. anhand von Schlagwörtern)
-            event_type = "exam" if "klausur" in title.lower() or "prüfung" in title.lower() else "lecture"
+            # 2. Wir übernehmen den alten Typ (falls vorhanden), ansonsten 'lecture'
+            event_type = existing_types.get(uid, "lecture")
+            custom_title = existing_custom_titles.get(uid, None) # NEU: custom title holen
 
-            # Das Dictionary muss exakt den Spaltennamen in deiner Supabase-Tabelle entsprechen
             events_to_upsert.append({
-                "id": uid, # Dient als Primärschlüssel für den Upsert
+                "id": uid,
                 "title": title,
-                "start_time": dtstart.isoformat() if hasattr(dtstart, 'isoformat') else str(dtstart),
-                "end_time": dtend.isoformat() if hasattr(dtend, 'isoformat') else str(dtend),
+                "start_time": start_iso,
+                "end_time": end_iso,
                 "location": location,
                 "description": description,
-                "type": event_type
+                "type": event_type,
+                "custom_title": custom_title # NEU: custom title ins upsert einfügen
             })
 
-    return events_to_upsert
+    print(f"{len(events_to_upsert)} Termine gefunden. Starte Sync mit Supabase...")
+    
+    if not events_to_upsert:
+        return
+
+    try:
+        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        supabase.table('study_events').upsert(events_to_upsert).execute()
+        print("Erfolgreich synchronisiert!")
+    except Exception as e:
+        print(f"Fehler beim Supabase-Sync: {e}")
 
 def main():
-    events = fetch_and_parse_ics(ICS_URL)
-    print(f"{len(events)} Termine gefunden. Starte Datenbank-Sync...")
-
-    if events:
-        # 3. Daten in Supabase schreiben (Upsert)
-        # Wichtig: Die Spalte 'id' muss in Supabase als Primary Key oder Unique definiert sein!
-        try:
-            response = (
-                supabase.table('study_events')
-                .upsert(events)
-                .execute()
-            )
-            print("Erfolgreich synchronisiert!")
-        except Exception as e:
-            print(f"Fehler beim Speichern in Supabase: {e}")
+    ics_content = fetch_ics()
+    if ics_content:
+        parse_and_sync(ics_content)
 
 if __name__ == "__main__":
     main()

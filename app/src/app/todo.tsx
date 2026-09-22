@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, Text, TextInput, View } from 'react-native';
 
+import { supabase } from '../../supabase';
 import { styles } from '@/app/todo.styles';
 import type { TodoItem, TodoStatus } from '@/types/todo';
 
@@ -16,26 +17,59 @@ export default function TodoScreen() {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [newTitle, setNewTitle] = useState('');
 
-  const addTodo = () => {
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  async function fetchTodos() {
+    const { data, error } = await supabase
+      .from('todos')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Fehler beim Abrufen der Aufgaben:', error);
+      return;
+    }
+    if (data) setTodos(data as TodoItem[]);
+  }
+
+  const addTodo = async () => {
     const trimmed = newTitle.trim();
     if (!trimmed) return;
-    setTodos((prev) => [...prev, { id: Date.now().toString(), title: trimmed, status: 'todo' }]);
     setNewTitle('');
+
+    const { data, error } = await supabase
+      .from('todos')
+      .insert({ title: trimmed, status: 'todo' })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Fehler beim Hinzufügen der Aufgabe:', error);
+      return;
+    }
+    setTodos((prev) => [...prev, data as TodoItem]);
   };
 
-  const moveTodo = (id: string, direction: -1 | 1) => {
-    setTodos((prev) =>
-      prev.map((t) => {
-        if (t.id !== id) return t;
-        const nextIndex = STATUS_ORDER.indexOf(t.status) + direction;
-        if (nextIndex < 0 || nextIndex >= STATUS_ORDER.length) return t;
-        return { ...t, status: STATUS_ORDER[nextIndex] };
-      })
-    );
+  const moveTodo = async (id: string, direction: -1 | 1) => {
+    const current = todos.find((t) => t.id === id);
+    if (!current) return;
+    const nextIndex = STATUS_ORDER.indexOf(current.status) + direction;
+    if (nextIndex < 0 || nextIndex >= STATUS_ORDER.length) return;
+    const nextStatus = STATUS_ORDER[nextIndex];
+
+    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, status: nextStatus } : t)));
+
+    const { error } = await supabase.from('todos').update({ status: nextStatus }).eq('id', id);
+    if (error) console.error('Fehler beim Verschieben der Aufgabe:', error);
   };
 
-  const removeTodo = (id: string) => {
+  const removeTodo = async (id: string) => {
     setTodos((prev) => prev.filter((t) => t.id !== id));
+
+    const { error } = await supabase.from('todos').delete().eq('id', id);
+    if (error) console.error('Fehler beim Löschen der Aufgabe:', error);
   };
 
   return (

@@ -1,5 +1,7 @@
+export type TodoStatus = 'todo' | 'inProgress' | 'done';
+
 export interface TodoItem {
   id: string;
   title: string;
-  completed: boolean;
+  status: TodoStatus;
 }

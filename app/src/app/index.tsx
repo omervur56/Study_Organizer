@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView, ActivityIndicator, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { View, Text, FlatList, StyleSheet, SafeAreaView, ActivityIndicator, TouchableOpacity, Modal, TextInput, Dimensions } from 'react-native';
 import { supabase } from '../../supabase';
+
+const GRID_COLUMNS = 4;
+const GRID_GAP = 8;
+const SCREEN_PADDING = 16;
 
 export default function App() {
   const [events, setEvents] = useState<any[]>([]);
@@ -9,6 +13,15 @@ export default function App() {
   const [timeLeft, setTimeLeft] = useState('');
   
   const [isGridView, setIsGridView] = useState(false);
+  // Fallback until the grid row itself has been measured (see gridAreaWidth).
+  const [listWidth, setListWidth] = useState(Dimensions.get('window').width);
+  // Measured directly from the grid row container, so it reflects the real space (incl. scrollbars).
+  const [gridAreaWidth, setGridAreaWidth] = useState(0);
+  const availableGridWidth = gridAreaWidth > 0 ? gridAreaWidth : listWidth - SCREEN_PADDING * 2;
+  // Floor to whole pixels; otherwise sub-pixel rounding can push the 4th card to the next row.
+  const gridCardWidth = Math.floor(
+    (availableGridWidth - GRID_GAP * (GRID_COLUMNS - 1)) / GRID_COLUMNS
+  );
 
   // Modal State
   const [modalVisible, setModalVisible] = useState(false);
@@ -231,6 +244,7 @@ export default function App() {
           keyExtractor={(item) => item.key}
           ListHeaderComponent={renderHeader}
           contentContainerStyle={styles.listContent}
+          onLayout={(e) => setListWidth(e.nativeEvent.layout.width)}
           renderItem={({ item: month }) => {
             const cards = month.items.map((event: any) => {
               const displayTitle = event.custom_title || event.title;
@@ -242,7 +256,7 @@ export default function App() {
                   key={event.id}
                   style={[
                     styles.card,
-                    isGridView ? styles.gridCard : styles.listCard,
+                    isGridView ? [styles.gridCard, { width: gridCardWidth }] : styles.listCard,
                     isExam && styles.examCard,
                     isProject && styles.projectCard
                   ]}
@@ -278,7 +292,19 @@ export default function App() {
             return (
               <View style={styles.monthSection}>
                 <Text style={styles.monthHeader}>{month.label}</Text>
-                {isGridView ? <View style={styles.gridWrap}>{cards}</View> : cards}
+                {isGridView ? (
+                  <View
+                    style={styles.gridWrap}
+                    onLayout={(e) => {
+                      const w = e.nativeEvent.layout.width;
+                      setGridAreaWidth((prev) => (Math.abs(prev - w) > 1 ? w : prev));
+                    }}
+                  >
+                    {cards}
+                  </View>
+                ) : (
+                  cards
+                )}
               </View>
             );
           }}
@@ -386,11 +412,11 @@ const styles = StyleSheet.create({
   gridRow: { justifyContent: 'space-between' },
   monthSection: { width: '100%', marginBottom: 16, marginTop: 6 },
   monthHeader: { fontSize: 16, fontWeight: '700', color: '#374151', paddingBottom: 8 },
-  gridWrap: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 3 },
+  gridWrap: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', gap: GRID_GAP },
 
   card: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, borderLeftWidth: 4, borderLeftColor: '#3B82F6', elevation: 2 },
   listCard: { marginBottom: 12 },
-  gridCard: { width: '27%', aspectRatio: 0.95, marginBottom: 5, padding: 5, justifyContent: 'space-between' },
+  gridCard: { aspectRatio: 0.9, padding: 6, justifyContent: 'space-between' },
   
   examCard: { borderLeftColor: '#EF4444', backgroundColor: '#FFFBFA' },
   projectCard: { borderLeftColor: '#F97316', backgroundColor: '#FFFBF5' },
@@ -399,13 +425,13 @@ const styles = StyleSheet.create({
   gridCardHeader: { flexDirection: 'column', marginBottom: 1 },
   
   title: { fontSize: 15, fontWeight: '600', color: '#111827', flex: 1, paddingRight: 8 },
-  gridTitle: { fontSize: 10.8, marginBottom: 3, paddingRight: 0, lineHeight: 13 },
+  gridTitle: { fontSize: 9.5, marginBottom: 3, paddingRight: 0, lineHeight: 12 },
   
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   gridCardFooter: { flexDirection: 'column', alignItems: 'flex-start' },
   
-  time: { color: '#4B5563', fontSize: 10.8, fontWeight: '500' },
-  location: { color: '#6B7280', marginTop: 2, fontSize: 9.5 },
+  time: { color: '#4B5563', fontSize: 9.5, fontWeight: '500' },
+  location: { color: '#6B7280', marginTop: 2, fontSize: 8.5 },
   
   editButton: { backgroundColor: '#F3F4F6', paddingHorizontal: 5, paddingVertical: 3, borderRadius: 4, alignSelf: 'flex-start' },
   editButtonText: { fontSize: 8.5, fontWeight: '700', color: '#4B5563' },

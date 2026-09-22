@@ -19,6 +19,7 @@ export const buildImportantEntries = (items: StudyEvent[]): ImportantEntry[] => 
     if (event.type === 'exam' || event.type === 'project' || event.type === 'task') {
       entries.push({
         id: `${event.id}-main`,
+        eventId: event.id,
         title: event.custom_title || event.title,
         type: event.type,
         start_time: event.start_time,
@@ -29,6 +30,7 @@ export const buildImportantEntries = (items: StudyEvent[]): ImportantEntry[] => 
         if (activity.type === 'exam' || activity.type === 'project' || activity.type === 'task') {
           entries.push({
             id: `${event.id}-activity-${index}`,
+            eventId: event.id,
             title: buildActivityDisplayTitle(activity),
             type: activity.type,
             start_time: event.start_time,

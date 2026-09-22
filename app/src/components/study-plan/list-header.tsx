@@ -6,13 +6,15 @@ import { ImportantEventsSection } from '@/components/study-plan/important-events
 import type { ImportantEntry } from '@/types/study-event';
 
 interface ListHeaderProps {
-  nextImportant: { type: string; title: string } | null;
+  nextImportant: { eventId: string; type: string; title: string } | null;
   timeLeft: string;
   importantList: ImportantEntry[];
   isGridView: boolean;
   onToggleView: (isGrid: boolean) => void;
   addingStudyDays: boolean;
   onAddStudyDays: () => void;
+  onSelectImportant?: (eventId: string) => void;
+  onGoToEvent?: (eventId: string) => void;
 }
 
 export function ListHeader({
@@ -23,13 +25,15 @@ export function ListHeader({
   onToggleView,
   addingStudyDays,
   onAddStudyDays,
+  onSelectImportant,
+  onGoToEvent,
 }: ListHeaderProps) {
   return (
     <View style={styles.headerContainer}>
       <Text style={styles.mainHeader}>Studienplan</Text>
 
-      <CountdownBanner nextImportant={nextImportant} timeLeft={timeLeft} />
-      <ImportantEventsSection items={importantList} />
+      <CountdownBanner nextImportant={nextImportant} timeLeft={timeLeft} onPress={onSelectImportant} onGoToEvent={onGoToEvent} />
+      <ImportantEventsSection items={importantList} onSelect={onSelectImportant} onGoToEvent={onGoToEvent} />
 
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionHeaderTitle}>Alle Termine</Text>

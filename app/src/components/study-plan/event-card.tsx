@@ -17,6 +17,7 @@ export function EventCard({ event, isGridView, gridCardWidth, onEdit, onDeleteAc
   const isExam = event.type === 'exam';
   const isProject = event.type === 'project';
   const isTask = event.type === 'task';
+  const isPersonal = event.type === 'personal';
 
   return (
     <View
@@ -25,7 +26,8 @@ export function EventCard({ event, isGridView, gridCardWidth, onEdit, onDeleteAc
         isGridView ? [styles.gridCard, { width: gridCardWidth }] : styles.listCard,
         isExam && styles.examCard,
         isProject && styles.projectCard,
-        isTask && styles.taskCard
+        isTask && styles.taskCard,
+        isPersonal && styles.personalCard
       ]}
     >
       <View style={[styles.cardHeader, isGridView && styles.gridCardHeader]}>
@@ -44,10 +46,10 @@ export function EventCard({ event, isGridView, gridCardWidth, onEdit, onDeleteAc
           {event.location ? <Text style={styles.location} numberOfLines={1}>{event.location}</Text> : null}
         </View>
 
-        {(isExam || isProject || isTask) && (
-          <View style={[styles.examBadge, isProject && styles.projectBadge, isTask && styles.taskBadge, isGridView && { marginTop: 8 }]}>
+        {(isExam || isProject || isTask || isPersonal) && (
+          <View style={[styles.examBadge, isProject && styles.projectBadge, isTask && styles.taskBadge, isPersonal && styles.personalBadge, isGridView && { marginTop: 8 }]}>
             <Text style={styles.examBadgeText}>
-              {isProject ? 'Projekt' : isTask ? 'Einzelaufgabe' : 'Prüfung'}
+              {isProject ? 'Projekt' : isTask ? 'Einzelaufgabe' : isPersonal ? 'Privat' : 'Prüfung'}
             </Text>
           </View>
         )}

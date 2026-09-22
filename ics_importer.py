@@ -21,9 +21,8 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # 2. ICS-Quellen. Zusätzliche Kalender (z.B. der private/Familien-Kalender vom iPhone)
 # werden über Umgebungsvariablen eingetragen, damit die geheimen Links nicht im Code landen.
 # Beispiel: export PERSONAL_ICS_URL="https://p12-caldav.icloud.com/published/2/...ics"
-ICS_URL = os.environ.get(
-    "ICS_URL",
-    "https://cis.hochschule-burgenland.at/webdav/google.php?cal=Ae6CRxpBgMmgHC2ard9n_UUCoVmOPiZc8as1Mi0Hkg0&1789674830.727",
+ICS_URL = os.environ.get("ICS_URL") or (
+    "https://cis.hochschule-burgenland.at/webdav/google.php?cal=Ae6CRxpBgMmgHC2ard9n_UUCoVmOPiZc8as1Mi0Hkg0&1789674830.727"
 )
 PERSONAL_ICS_URL = os.environ.get("PERSONAL_ICS_URL")
 
@@ -55,9 +54,8 @@ def fetch_ics(url):
 def parse_and_sync(sources):
     # 1. Bestehende Termine aus Supabase laden, um den 'type' zu retten!
     existing_types = {}
-    existing_custom_titles = {} # NEU: Wörterbuch für custom titles
-    try:
-        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    existing_custom_titles = {} # NEU: Wörterbuch für custom ti
+ create_client(SUPABASE_URL, SUPABASE_KEY)
         existing_data = supabase.table('study_events').select('id, type, custom_title').execute() # NEU: custom_title mit abfragen
         existing_types = {item['id']: item['type'] for item in existing_data.data}
         existing_custom_titles = {item['id']: item.get('custom_title') for item in existing_data.data} # NEU: custom titles speichern
@@ -103,6 +101,11 @@ def parse_and_sync(sources):
                     "type": event_type,
                     "custom_title": custom_title # NEU: custom title ins upsert einfügen
                 })
+
+    # Wiederkehrende Termine (z.B. aus iCloud) können mehrfach mit derselben ID auftauchen,
+    # dedupliziert, sonst lehnt Supabase den Upsert ab. Bei Duplikaten gewinnt der letzte Eintrag.
+    deduped = {event["id"]: event for event in events_to_upsert}
+    events_to_upsert = list(deduped.values())
 
     print(f"{len(events_to_upsert)} Termine gefunden. Starte Sync mit Supabase...")
 

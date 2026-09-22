@@ -32,7 +32,6 @@ export default function TodoScreen() {
           contentContainerStyle={styles.listContent}
           ListHeaderComponent={
             <>
-              <Text style={styles.mainHeader}>To-Do-Liste</Text>
               <View style={styles.inputRow}>
                 <TextInput
                   style={styles.input}

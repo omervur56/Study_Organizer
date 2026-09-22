@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, FlatList, SafeAreaView, ActivityIndicator, Dimensions, Alert, Platform } from 'react-native';
 import { supabase } from '../../supabase';
 import { styles } from '@/app/index.styles';
@@ -12,6 +12,8 @@ import type { Activity, ImportantEntry, StudyEvent } from '@/types/study-event';
 const GRID_COLUMNS = 4;
 const GRID_GAP = 8;
 const SCREEN_PADDING = 16;
+
+type MonthSection = { key: string; label: string; items: StudyEvent[] };
 
 export default function App() {
   const [events, setEvents] = useState<StudyEvent[]>([]);
@@ -45,6 +47,8 @@ export default function App() {
   // Index der Tätigkeit, die gerade über den Stift-Button bearbeitet wird (null = neuer Eintrag)
   const [editingActivityIndex, setEditingActivityIndex] = useState<number | null>(null);
   const [savingEvent, setSavingEvent] = useState(false);
+
+  const listRef = useRef<FlatList<MonthSection>>(null);
 
   useEffect(() => {
     fetchEvents();
@@ -120,6 +124,25 @@ export default function App() {
     setExtraSubject('');
     setEditingActivityIndex(null);
     setModalVisible(true);
+  };
+
+  // Öffnet den Termin, zu dem eine Tätigkeit aus Countdown/"Wichtige Termine" gehört.
+  const openEventById = (eventId: string) => {
+    const event = events.find((e) => e.id === eventId);
+    if (event) openEditModal(event);
+  };
+
+  // Scrollt die Terminliste zu dem Monatsabschnitt, in dem der Termin liegt, ohne den Bearbeiten-Dialog zu öffnen.
+  const scrollToEventById = (eventId: string) => {
+    const event = events.find((e) => e.id === eventId);
+    if (!event) return;
+
+    const date = new Date(event.start_time);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`;
+    const sectionIndex = monthSections.findIndex((section) => section.key === monthKey);
+    if (sectionIndex === -1) return;
+
+    listRef.current?.scrollToIndex({ index: sectionIndex, animated: true, viewPosition: 0 });
   };
 
   const addExtraActivity = () => {
@@ -306,7 +329,7 @@ export default function App() {
 
   const monthSections = Object.values(
     sortedEvents.reduce(
-      (groups: Record<string, { key: string; label: string; items: StudyEvent[] }>, item) => {
+      (groups: Record<string, MonthSection>, item) => {
         const date = new Date(item.start_time);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`;
 
@@ -321,7 +344,7 @@ export default function App() {
         groups[monthKey].items.push(item);
         return groups;
       },
-      {} as Record<string, { key: string; label: string; items: StudyEvent[] }>
+      {} as Record<string, MonthSection>
     )
   ).sort((a, b) => {
     const [yearA, monthA] = a.key.split('-').map(Number);
@@ -338,6 +361,7 @@ export default function App() {
       ) : (
         <FlatList
           key={isGridView ? 'grid-view' : 'list-view'}
+          ref={listRef}
           data={monthSections}
           keyExtractor={(item) => item.key}
           ListHeaderComponent={
@@ -349,10 +373,16 @@ export default function App() {
               onToggleView={setIsGridView}
               addingStudyDays={addingStudyDays}
               onAddStudyDays={addStudyDaysForCurrentMonth}
+              onSelectImportant={openEventById}
+              onGoToEvent={scrollToEventById}
             />
           }
           contentContainerStyle={styles.listContent}
           onLayout={(e) => setListWidth(e.nativeEvent.layout.width)}
+          onScrollToIndexFailed={(info) => {
+            // Höhe der Monatsabschnitte ist variabel; bei fehlgeschlagener Schätzung grob auf Basis der durchschnittlichen Höhe scrollen.
+            listRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: true });
+          }}
           renderItem={({ item: month }) => {
             const cards = month.items.map((event) => (
               <EventCard

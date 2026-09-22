@@ -18,6 +18,7 @@ export interface StudyEvent {
 
 export interface ImportantEntry {
   id: string;
+  eventId: string;
   title: string;
   type: string;
   start_time: string;

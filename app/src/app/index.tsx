@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, FlatList, SafeAreaView, ActivityIndicator, Dimensions, Alert, Platform } from 'react-native';
+import { View, Text, FlatList, SafeAreaView, ActivityIndicator, Dimensions, Alert, Platform, TouchableOpacity } from 'react-native';
 import { supabase } from '../../supabase';
 import { styles } from '@/app/index.styles';
 import { ListHeader } from '@/components/study-plan/list-header';
@@ -49,6 +49,12 @@ export default function App() {
   const [savingEvent, setSavingEvent] = useState(false);
 
   const listRef = useRef<FlatList<MonthSection>>(null);
+  // Zeigt den "Nach oben"-Button erst nach etwas Scroll-Distanz an, damit er nicht sofort sichtbar ist.
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const scrollToTop = () => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  };
 
   useEffect(() => {
     fetchEvents();
@@ -379,6 +385,8 @@ export default function App() {
           }
           contentContainerStyle={styles.listContent}
           onLayout={(e) => setListWidth(e.nativeEvent.layout.width)}
+          onScroll={(e) => setShowScrollTop(e.nativeEvent.contentOffset.y > 300)}
+          scrollEventThrottle={16}
           onScrollToIndexFailed={(info) => {
             // Höhe der Monatsabschnitte ist variabel; bei fehlgeschlagener Schätzung grob auf Basis der durchschnittlichen Höhe scrollen.
             listRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: true });
@@ -421,6 +429,16 @@ export default function App() {
             </View>
           }
         />
+      )}
+
+      {showScrollTop && (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.scrollTopButton}
+          onPress={scrollToTop}
+        >
+          <Text style={styles.scrollTopButtonText}>↑</Text>
+        </TouchableOpacity>
       )}
 
       <EditEventModal

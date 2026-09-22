@@ -395,9 +395,9 @@ const styles = StyleSheet.create({
   
   examMiniCard: { backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FCA5A5', padding: 12, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   projectMiniCard: { backgroundColor: '#FFF7ED', borderColor: '#FDBA74' },
-  examMiniTitle: { fontSize: 14, fontWeight: '600', color: '#991B1B' },
+  examMiniTitle: { fontSize: 16, fontWeight: '600', color: '#991B1B' },
   projectMiniTitle: { color: '#C2410C' },
-  examMiniTime: { fontSize: 12, color: '#B91C1C', marginTop: 2 },
+  examMiniTime: { fontSize: 13, color: '#B91C1C', marginTop: 2 },
   projectMiniTime: { color: '#C2410C' },
 
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, marginBottom: 12 },
@@ -424,21 +424,21 @@ const styles = StyleSheet.create({
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
   gridCardHeader: { flexDirection: 'column', marginBottom: 1 },
   
-  title: { fontSize: 15, fontWeight: '600', color: '#111827', flex: 1, paddingRight: 8 },
-  gridTitle: { fontSize: 9.5, marginBottom: 3, paddingRight: 0, lineHeight: 12 },
+  title: { fontSize: 17, fontWeight: '600', color: '#111827', flex: 1, paddingRight: 8 },
+  gridTitle: { fontSize: 12, marginBottom: 3, paddingRight: 0, lineHeight: 15 },
   
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   gridCardFooter: { flexDirection: 'column', alignItems: 'flex-start' },
   
-  time: { color: '#4B5563', fontSize: 9.5, fontWeight: '500' },
-  location: { color: '#6B7280', marginTop: 2, fontSize: 8.5 },
+  time: { color: '#4B5563', fontSize: 12, fontWeight: '500' },
+  location: { color: '#6B7280', marginTop: 2, fontSize: 11 },
   
   editButton: { backgroundColor: '#F3F4F6', paddingHorizontal: 5, paddingVertical: 3, borderRadius: 4, alignSelf: 'flex-start' },
-  editButtonText: { fontSize: 8.5, fontWeight: '700', color: '#4B5563' },
+  editButtonText: { fontSize: 10.5, fontWeight: '700', color: '#4B5563' },
   
   examBadge: { backgroundColor: '#EF4444', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   projectBadge: { backgroundColor: '#F97316' },
-  examBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
+  examBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
   
   emptyContainer: { paddingVertical: 30, alignItems: 'center' },
   empty: { fontSize: 15, color: '#6B7280', fontWeight: '600' },

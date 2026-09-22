@@ -386,29 +386,29 @@ const styles = StyleSheet.create({
   gridRow: { justifyContent: 'space-between' },
   monthSection: { width: '100%', marginBottom: 16, marginTop: 6 },
   monthHeader: { fontSize: 16, fontWeight: '700', color: '#374151', paddingBottom: 8 },
-  gridWrap: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8 },
+  gridWrap: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 3 },
 
   card: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, borderLeftWidth: 4, borderLeftColor: '#3B82F6', elevation: 2 },
   listCard: { marginBottom: 12 },
-  gridCard: { width: '32%', aspectRatio: 1, marginBottom: 8, padding: 8, justifyContent: 'space-between' },
+  gridCard: { width: '27%', aspectRatio: 0.95, marginBottom: 5, padding: 5, justifyContent: 'space-between' },
   
   examCard: { borderLeftColor: '#EF4444', backgroundColor: '#FFFBFA' },
   projectCard: { borderLeftColor: '#F97316', backgroundColor: '#FFFBF5' },
   
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  gridCardHeader: { flexDirection: 'column', marginBottom: 6 },
+  gridCardHeader: { flexDirection: 'column', marginBottom: 1 },
   
   title: { fontSize: 15, fontWeight: '600', color: '#111827', flex: 1, paddingRight: 8 },
-  gridTitle: { fontSize: 14, marginBottom: 8, paddingRight: 0 },
+  gridTitle: { fontSize: 10.8, marginBottom: 3, paddingRight: 0, lineHeight: 13 },
   
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   gridCardFooter: { flexDirection: 'column', alignItems: 'flex-start' },
   
-  time: { color: '#4B5563', fontSize: 13, fontWeight: '500' },
-  location: { color: '#6B7280', marginTop: 4, fontSize: 12 },
+  time: { color: '#4B5563', fontSize: 10.8, fontWeight: '500' },
+  location: { color: '#6B7280', marginTop: 2, fontSize: 9.5 },
   
-  editButton: { backgroundColor: '#F3F4F6', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, alignSelf: 'flex-start' },
-  editButtonText: { fontSize: 11, fontWeight: '700', color: '#4B5563' },
+  editButton: { backgroundColor: '#F3F4F6', paddingHorizontal: 5, paddingVertical: 3, borderRadius: 4, alignSelf: 'flex-start' },
+  editButtonText: { fontSize: 8.5, fontWeight: '700', color: '#4B5563' },
   
   examBadge: { backgroundColor: '#EF4444', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   projectBadge: { backgroundColor: '#F97316' },

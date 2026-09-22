@@ -30,8 +30,6 @@ export function ListHeader({
 }: ListHeaderProps) {
   return (
     <View style={styles.headerContainer}>
-      <Text style={styles.mainHeader}>Studienplan</Text>
-
       <CountdownBanner nextImportant={nextImportant} timeLeft={timeLeft} onPress={onSelectImportant} onGoToEvent={onGoToEvent} />
       <ImportantEventsSection items={importantList} onSelect={onSelectImportant} onGoToEvent={onGoToEvent} />
 

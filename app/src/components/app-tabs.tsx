@@ -27,7 +27,11 @@ import { useTheme } from '@/hooks/use-theme';
 const SIDEBAR_WIDTH = 220;
 const TOP_BAR_CONTENT_HEIGHT = 64;
 const TOP_BAR_BACKGROUND = '#F3F4F6';
-const PAGE_TITLES: Record<string, string> = { '/': 'Studienplan', '/todo': 'To-Do-Liste' };
+const PAGE_TITLES: Record<string, string> = {
+  '/': 'Studienplan',
+  '/todo': 'To-Do-Liste',
+  '/week': 'Kalenderwoche',
+};
 
 type MenuContextValue = { isOpen: boolean; progress: SharedValue<number>; toggle: () => void };
 const MenuContext = createContext<MenuContextValue | null>(null);
@@ -61,6 +65,9 @@ export default function AppTabs() {
             </TabTrigger>
             <TabTrigger name="todo" href="/todo" asChild>
               <SidebarItem>To-Do-Liste</SidebarItem>
+            </TabTrigger>
+            <TabTrigger name="week" href="/week" asChild>
+              <SidebarItem>Kalenderwoche</SidebarItem>
             </TabTrigger>
           </Sidebar>
         </TabList>

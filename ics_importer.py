@@ -1,5 +1,7 @@
 import os
+from datetime import date, timedelta
 import requests
+import recurring_ical_events
 from icalendar import Calendar
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -54,8 +56,9 @@ def fetch_ics(url):
 def parse_and_sync(sources):
     # 1. Bestehende Termine aus Supabase laden, um den 'type' zu retten!
     existing_types = {}
-    existing_custom_titles = {} # NEU: Wörterbuch für custom ti
- create_client(SUPABASE_URL, SUPABASE_KEY)
+    existing_custom_titles = {} # NEU: Wörterbuch für custom titles
+    try:
+        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
         existing_data = supabase.table('study_events').select('id, type, custom_title').execute() # NEU: custom_title mit abfragen
         existing_types = {item['id']: item['type'] for item in existing_data.data}
         existing_custom_titles = {item['id']: item.get('custom_title') for item in existing_data.data} # NEU: custom titles speichern
@@ -72,7 +75,20 @@ def parse_and_sync(sources):
         print("Verarbeite Kalenderdaten...")
         cal = Calendar.from_ical(ics_content)
 
-        for component in cal.walk():
+        # Wiederkehrende Termine (z.B. jährliche Geburtstage) tauchen im Rohkalender nur
+        # einmal mit ihrer ursprünglichen RRULE auf. Damit sie im Frontend (das nach
+        # zukünftigen start_time filtert) überhaupt sichtbar werden, müssen wir die
+        # einzelnen Vorkommen innerhalb eines Zeitfensters selbst auflösen.
+        recurring_uids = {
+            str(component.get('uid'))
+            for component in cal.walk()
+            if component.name == "VEVENT" and component.get('rrule')
+        }
+        window_start = date.today() - timedelta(days=30)
+        window_end = date.today() + timedelta(days=730)
+        occurrences = recurring_ical_events.of(cal).between(window_start, window_end)
+
+        for component in occurrences:
             if component.name == "VEVENT":
                 uid = str(component.get('uid'))
                 title = str(component.get('summary', 'Ohne Titel'))
@@ -87,12 +103,16 @@ def parse_and_sync(sources):
                 location = str(component.get('location', ''))
                 description = str(component.get('description', ''))
 
+                # Jedes Vorkommen eines wiederkehrenden Termins braucht eine eigene ID,
+                # sonst überschreiben sich z.B. alle Jahrgänge eines Geburtstags gegenseitig.
+                event_id = f"{uid}_{start_iso[:10]}" if uid in recurring_uids else uid
+
                 # 2. Wir übernehmen den alten Typ (falls vorhanden), ansonsten den Default der Quelle
-                event_type = existing_types.get(uid, source["default_type"])
-                custom_title = existing_custom_titles.get(uid, None) # NEU: custom title holen
+                event_type = existing_types.get(event_id, source["default_type"])
+                custom_title = existing_custom_titles.get(event_id, None) # NEU: custom title holen
 
                 events_to_upsert.append({
-                    "id": uid,
+                    "id": event_id,
                     "title": title,
                     "start_time": start_iso,
                     "end_time": end_iso,

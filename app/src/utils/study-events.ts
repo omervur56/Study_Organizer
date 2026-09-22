@@ -49,3 +49,34 @@ export const formatDate = (dateString: string) => {
     hour: '2-digit', minute: '2-digit'
   });
 };
+
+export const formatTime = (dateString: string) =>
+  new Date(dateString).toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' });
+
+export const formatDayHeader = (date: Date) =>
+  date.toLocaleDateString('de-AT', { weekday: 'short', day: '2-digit', month: '2-digit' });
+
+export const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+export interface DayGroup {
+  key: string;
+  date: Date;
+  events: StudyEvent[];
+}
+
+// Fasst Termine, die auf denselben Kalendertag fallen, zu einer Gruppe zusammen, damit
+// z.B. ein Uni-Termin und ein privater Termin am selben Tag in einer Karte landen statt
+// als zwei getrennte Karten (setzt sortierte Eingabe nach start_time voraus).
+export const groupEventsByDay = (items: StudyEvent[]): DayGroup[] => {
+  const groups = new Map<string, DayGroup>();
+  items.forEach((event) => {
+    const date = new Date(event.start_time);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    if (!groups.has(key)) {
+      groups.set(key, { key, date, events: [] });
+    }
+    groups.get(key)!.events.push(event);
+  });
+  return Array.from(groups.values());
+};

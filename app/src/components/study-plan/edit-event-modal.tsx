@@ -98,6 +98,13 @@ export function EditEventModal({
             >
               <Text style={[styles.typeButtonText, editType === 'task' && styles.typeButtonTextActive]}>Einzelaufgabe</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.typeButton, editType === 'personal' && styles.typeButtonPersonal]}
+              onPress={() => onChangeEditType('personal')}
+            >
+              <Text style={[styles.typeButtonText, editType === 'personal' && styles.typeButtonTextActive]}>Privat</Text>
+            </TouchableOpacity>
           </View>
 
           <Text style={styles.inputLabel}>Weitere Tätigkeiten zu diesem Termin</Text>

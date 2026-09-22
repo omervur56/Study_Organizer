@@ -81,6 +81,7 @@ export const styles = StyleSheet.create({
   examCard: { borderLeftColor: '#EF4444', backgroundColor: '#FFFBFA' },
   projectCard: { borderLeftColor: '#F97316', backgroundColor: '#FFFBF5' },
   taskCard: { borderLeftColor: '#8B5CF6', backgroundColor: '#FBFAFF' },
+  personalCard: { borderLeftColor: '#10B981', backgroundColor: '#F5FFFC' },
 
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
   gridCardHeader: { flexDirection: 'column', marginBottom: 1 },
@@ -100,6 +101,7 @@ export const styles = StyleSheet.create({
   examBadge: { backgroundColor: '#EF4444', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   projectBadge: { backgroundColor: '#F97316' },
   taskBadge: { backgroundColor: '#8B5CF6' },
+  personalBadge: { backgroundColor: '#10B981' },
   examBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
 
   emptyContainer: { paddingVertical: 30, alignItems: 'center' },
@@ -145,6 +147,7 @@ export const styles = StyleSheet.create({
   typeButtonExam: { backgroundColor: '#FEF2F2', borderColor: '#EF4444' },
   typeButtonProject: { backgroundColor: '#FFF7ED', borderColor: '#F97316' },
   typeButtonTask: { backgroundColor: '#F5F3FF', borderColor: '#8B5CF6' },
+  typeButtonPersonal: { backgroundColor: '#ECFDF5', borderColor: '#10B981' },
   typeButtonText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
   typeButtonTextActive: { color: '#111827' },
 

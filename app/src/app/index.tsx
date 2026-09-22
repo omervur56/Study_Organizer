@@ -4,8 +4,10 @@ import { supabase } from '../../supabase';
 import { styles } from '@/app/index.styles';
 import { ListHeader } from '@/components/study-plan/list-header';
 import { EventCard } from '@/components/study-plan/event-card';
+import { DayCard } from '@/components/study-plan/day-card';
 import { EditEventModal } from '@/components/study-plan/edit-event-modal';
-import { buildImportantEntries } from '@/utils/study-events';
+import { AddEventModal } from '@/components/study-plan/add-event-modal';
+import { buildImportantEntries, groupEventsByDay, isSameDay } from '@/utils/study-events';
 import { SUBJECT_OPTIONS } from '@/constants/subjects';
 import type { Activity, ImportantEntry, StudyEvent } from '@/types/study-event';
 
@@ -47,6 +49,15 @@ export default function App() {
   // Index der Tätigkeit, die gerade über den Stift-Button bearbeitet wird (null = neuer Eintrag)
   const [editingActivityIndex, setEditingActivityIndex] = useState<number | null>(null);
   const [savingEvent, setSavingEvent] = useState(false);
+
+  // Neues Ereignis zu einem Termin (Tag) hinzufügen: erst Privat/Uni wählen, dann Details.
+  const [addEventVisible, setAddEventVisible] = useState(false);
+  const [addEventDate, setAddEventDate] = useState<Date | null>(null);
+  const [addEventKind, setAddEventKind] = useState<'private' | 'uni' | null>(null);
+  const [addEventTitle, setAddEventTitle] = useState('');
+  const [addEventType, setAddEventType] = useState('lecture');
+  const [addEventSubject, setAddEventSubject] = useState('');
+  const [savingAddEvent, setSavingAddEvent] = useState(false);
 
   const listRef = useRef<FlatList<MonthSection>>(null);
   // Zeigt den "Nach oben"-Button erst nach etwas Scroll-Distanz an, damit er nicht sofort sichtbar ist.
@@ -266,6 +277,84 @@ export default function App() {
     );
   };
 
+  const openAddEventModal = (date: Date) => {
+    setAddEventDate(date);
+    setAddEventKind(null);
+    setAddEventTitle('');
+    setAddEventType('lecture');
+    setAddEventSubject('');
+    setAddEventVisible(true);
+  };
+
+  const closeAddEventModal = () => {
+    setAddEventVisible(false);
+  };
+
+  // Speichert das neue Ereignis: privat immer als eigener Termin, Uni-Ereignisse werden
+  // als Tätigkeit an einen bestehenden Uni-Termin desselben Tages angehängt (sonst neu angelegt).
+  const saveNewEvent = async () => {
+    if (!addEventDate || !addEventKind) return;
+    const trimmed = addEventTitle.trim();
+    if (!trimmed) return;
+
+    try {
+      setSavingAddEvent(true);
+      const startTime = new Date(
+        addEventDate.getFullYear(),
+        addEventDate.getMonth(),
+        addEventDate.getDate(),
+        9, 0, 0
+      ).toISOString();
+      const newId = `manual-${addEventDate.getTime()}-${Date.now()}`;
+
+      if (addEventKind === 'private') {
+        const { error } = await supabase.from('study_events').insert({
+          id: newId,
+          title: trimmed,
+          start_time: startTime,
+          type: 'personal',
+          custom_title: null,
+          activities: [],
+        });
+        if (error) throw error;
+      } else {
+        const existing = events.find(
+          (e) => isSameDay(new Date(e.start_time), addEventDate) && e.type !== 'personal'
+        );
+
+        if (existing) {
+          const updatedActivities = [
+            ...(existing.activities || []),
+            { title: trimmed, type: addEventType, subject: addEventSubject || null },
+          ];
+          const { error } = await supabase
+            .from('study_events')
+            .update({ activities: updatedActivities })
+            .eq('id', existing.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from('study_events').insert({
+            id: newId,
+            title: trimmed,
+            start_time: startTime,
+            type: addEventType,
+            custom_title: null,
+            activities: [],
+          });
+          if (error) throw error;
+        }
+      }
+
+      setAddEventVisible(false);
+      await fetchEvents();
+    } catch (error: any) {
+      console.error('Fehler beim Hinzufügen des Ereignisses:', error);
+      Alert.alert('Fehler', `Ereignis konnte nicht hinzugefügt werden: ${error?.message ?? error}`);
+    } finally {
+      setSavingAddEvent(false);
+    }
+  };
+
   const addStudyDaysForCurrentMonth = async () => {
     try {
       setAddingStudyDays(true);
@@ -392,17 +481,8 @@ export default function App() {
             listRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: true });
           }}
           renderItem={({ item: month }) => {
-            const cards = month.items.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                isGridView={isGridView}
-                gridCardWidth={gridCardWidth}
-                onEdit={openEditModal}
-                onDeleteActivity={confirmDeleteActivity}
-              />
-            ));
-
+            // Im Listenmodus werden Ereignisse desselben Tages in einer Karte zusammengefasst,
+            // in der Rasteransicht bleibt jedes Ereignis eine eigene, kompakte Kachel.
             return (
               <View style={styles.monthSection}>
                 <Text style={styles.monthHeader}>{month.label}</Text>
@@ -414,10 +494,28 @@ export default function App() {
                       setGridAreaWidth((prev) => (Math.abs(prev - w) > 1 ? w : prev));
                     }}
                   >
-                    {cards}
+                    {month.items.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        isGridView={isGridView}
+                        gridCardWidth={gridCardWidth}
+                        onEdit={openEditModal}
+                        onDeleteActivity={confirmDeleteActivity}
+                      />
+                    ))}
                   </View>
                 ) : (
-                  cards
+                  groupEventsByDay(month.items).map((day) => (
+                    <DayCard
+                      key={day.key}
+                      date={day.date}
+                      events={day.events}
+                      onEdit={openEditModal}
+                      onDeleteActivity={confirmDeleteActivity}
+                      onAddEvent={openAddEventModal}
+                    />
+                  ))
                 )}
               </View>
             );
@@ -462,6 +560,23 @@ export default function App() {
         onAddActivity={addExtraActivity}
         onSave={saveEventDetails}
         saving={savingEvent}
+      />
+
+      <AddEventModal
+        visible={addEventVisible}
+        date={addEventDate}
+        kind={addEventKind}
+        onChangeKind={setAddEventKind}
+        title={addEventTitle}
+        onChangeTitle={setAddEventTitle}
+        type={addEventType}
+        onChangeType={setAddEventType}
+        subjectOptions={SUBJECT_OPTIONS}
+        subject={addEventSubject}
+        onChangeSubject={setAddEventSubject}
+        onSave={saveNewEvent}
+        onClose={closeAddEventModal}
+        saving={savingAddEvent}
       />
     </SafeAreaView>
   );

@@ -1,4 +1,5 @@
 requests
 icalendar
+recurring-ical-events
 supabase
 python-dotenv

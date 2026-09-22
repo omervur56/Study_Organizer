@@ -83,6 +83,20 @@ export const styles = StyleSheet.create({
   taskCard: { borderLeftColor: '#8B5CF6', backgroundColor: '#FBFAFF' },
   personalCard: { borderLeftColor: '#10B981', backgroundColor: '#F5FFFC' },
 
+  // Ein Termin (Tag) mit mehreren Ereignissen: die Karte selbst hat keine Typ-Farbe,
+  // jedes einzelne Ereignis darin bekommt seine eigene Randfarbe (siehe *Entry unten).
+  dayCard: { backgroundColor: '#FFFFFF', borderRadius: 12, elevation: 2, marginBottom: 12, paddingVertical: 12 },
+  dayCardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginBottom: 4 },
+  dayCardHeader: { fontSize: 13, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5 },
+  addEventButton: { backgroundColor: '#EFF6FF', borderWidth: 1, borderColor: '#3B82F6', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  addEventButtonText: { color: '#3B82F6', fontSize: 11, fontWeight: '700' },
+  dayCardEntry: { paddingHorizontal: 16, paddingVertical: 10, borderLeftWidth: 4, borderLeftColor: '#3B82F6' },
+  dayCardEntryDivider: { borderTopWidth: 1, borderTopColor: '#F3F4F6', marginTop: 4 },
+  examEntry: { borderLeftColor: '#EF4444', backgroundColor: '#FFFBFA' },
+  projectEntry: { borderLeftColor: '#F97316', backgroundColor: '#FFFBF5' },
+  taskEntry: { borderLeftColor: '#8B5CF6', backgroundColor: '#FBFAFF' },
+  personalEntry: { borderLeftColor: '#10B981', backgroundColor: '#F5FFFC' },
+
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
   gridCardHeader: { flexDirection: 'column', marginBottom: 1 },
 
@@ -124,6 +138,11 @@ export const styles = StyleSheet.create({
   subjectChipActive: { backgroundColor: '#EFF6FF', borderColor: '#3B82F6' },
   subjectChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
   subjectChipTextActive: { color: '#111827' },
+
+  choiceRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  choiceButton: { flex: 1, backgroundColor: '#ECFDF5', borderWidth: 2, borderColor: '#10B981', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
+  choiceButtonUni: { backgroundColor: '#EFF6FF', borderColor: '#3B82F6' },
+  choiceButtonText: { fontSize: 15, fontWeight: '700', color: '#111827' },
 
   // Modal Styles
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },

@@ -16,6 +16,8 @@ const COLUMNS: { key: TodoStatus; title: string }[] = [
 export default function TodoScreen() {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [newTitle, setNewTitle] = useState('');
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
 
   useEffect(() => {
     fetchTodos();
@@ -50,6 +52,30 @@ export default function TodoScreen() {
       return;
     }
     setTodos((prev) => [...prev, data as TodoItem]);
+  };
+
+  const startEditing = (todo: TodoItem) => {
+    setEditingTodoId(todo.id);
+    setEditTitle(todo.title);
+  };
+
+  const cancelEditing = () => {
+    setEditingTodoId(null);
+    setEditTitle('');
+  };
+
+  const saveTodoTitle = async (id: string) => {
+    const trimmed = editTitle.trim();
+    if (!trimmed) return;
+
+    const { error } = await supabase.from('todos').update({ title: trimmed }).eq('id', id);
+    if (error) {
+      console.error('Fehler beim Bearbeiten der Aufgabe:', error);
+      return;
+    }
+
+    setTodos((prev) => prev.map((todo) => (todo.id === id ? { ...todo, title: trimmed } : todo)));
+    cancelEditing();
   };
 
   const moveTodo = async (id: string, direction: -1 | 1) => {
@@ -110,7 +136,41 @@ export default function TodoScreen() {
                   ListEmptyComponent={<Text style={styles.empty}>Keine Aufgaben</Text>}
                   renderItem={({ item }) => (
                     <View style={styles.card}>
-                      <Text style={styles.cardTitle}>{item.title}</Text>
+                      {editingTodoId === item.id ? (
+                        <View style={styles.editRow}>
+                          <TextInput
+                            autoFocus
+                            style={styles.editInput}
+                            value={editTitle}
+                            onChangeText={setEditTitle}
+                            onSubmitEditing={() => saveTodoTitle(item.id)}
+                            returnKeyType="done"
+                            accessibilityLabel="Aufgabentitel bearbeiten"
+                          />
+                          <Pressable
+                            style={styles.editButton}
+                            onPress={() => saveTodoTitle(item.id)}
+                            accessibilityLabel="Änderungen speichern">
+                            <Text style={styles.editButtonText}>✓</Text>
+                          </Pressable>
+                          <Pressable
+                            style={styles.cancelButton}
+                            onPress={cancelEditing}
+                            accessibilityLabel="Bearbeitung abbrechen">
+                            <Text style={styles.cancelButtonText}>×</Text>
+                          </Pressable>
+                        </View>
+                      ) : (
+                        <View style={styles.titleRow}>
+                          <Text style={styles.cardTitle}>{item.title}</Text>
+                          <Pressable
+                            style={styles.editButton}
+                            onPress={() => startEditing(item)}
+                            accessibilityLabel={`Aufgabe bearbeiten: ${item.title}`}>
+                            <Text style={styles.editButtonText}>✎</Text>
+                          </Pressable>
+                        </View>
+                      )}
                       <View style={styles.cardActions}>
                         <Pressable
                           style={[styles.moveButton, columnIndex === 0 && styles.moveButtonDisabled]}

@@ -1,0 +1,13 @@
+[build]
+  base = "app"
+  command = "npm install && npx expo export --platform web"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Fall back to the app shell for client-side routes that have no pre-rendered file
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

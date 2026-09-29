@@ -82,7 +82,6 @@ export const styles = StyleSheet.create({
   projectCard: { borderLeftColor: '#F97316', backgroundColor: '#FFFBF5' },
   taskCard: { borderLeftColor: '#8B5CF6', backgroundColor: '#FBFAFF' },
   personalCard: { borderLeftColor: '#10B981', backgroundColor: '#F5FFFC' },
-  moodleCard: { borderLeftColor: '#F59E0B', backgroundColor: '#FFFBEB' },
 
   // Ein Termin (Tag) mit mehreren Ereignissen: die Karte selbst hat keine Typ-Farbe,
   // jedes einzelne Ereignis darin bekommt seine eigene Randfarbe (siehe *Entry unten).
@@ -97,7 +96,6 @@ export const styles = StyleSheet.create({
   projectEntry: { borderLeftColor: '#F97316', backgroundColor: '#FFFBF5' },
   taskEntry: { borderLeftColor: '#8B5CF6', backgroundColor: '#FBFAFF' },
   personalEntry: { borderLeftColor: '#10B981', backgroundColor: '#F5FFFC' },
-  moodleEntry: { borderLeftColor: '#F59E0B', backgroundColor: '#FFFBEB' },
 
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
   gridCardHeader: { flexDirection: 'column', marginBottom: 1 },
@@ -118,7 +116,6 @@ export const styles = StyleSheet.create({
   projectBadge: { backgroundColor: '#F97316' },
   taskBadge: { backgroundColor: '#8B5CF6' },
   personalBadge: { backgroundColor: '#10B981' },
-  moodleBadge: { backgroundColor: '#F59E0B' },
   examBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
 
   emptyContainer: { paddingVertical: 30, alignItems: 'center' },
@@ -178,17 +175,4 @@ export const styles = StyleSheet.create({
   cancelButtonText: { fontSize: 16, fontWeight: '600', color: '#4B5563' },
   saveButton: { flex: 1, backgroundColor: '#111827', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
   saveButtonText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
-
-  // Detail-Modal (Tippen auf einen Termin)
-  detailScroll: { maxHeight: '70%' },
-  detailBadgeRow: { flexDirection: 'row', marginBottom: 12 },
-  detailRow: { marginBottom: 16 },
-  detailLabel: { fontSize: 12, fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
-  detailValue: { fontSize: 15, color: '#111827', lineHeight: 21 },
-  detailLinkButton: { backgroundColor: '#EFF6FF', borderWidth: 1, borderColor: '#3B82F6', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, marginTop: 8 },
-  detailLinkButtonText: { color: '#3B82F6', fontSize: 13, fontWeight: '700' },
-  detailCloseButton: { backgroundColor: '#F3F4F6', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginTop: 8 },
-  detailCloseButtonText: { fontSize: 16, fontWeight: '600', color: '#4B5563' },
-  detailEditButton: { backgroundColor: '#111827', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginTop: 8 },
-  detailEditButtonText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
 });

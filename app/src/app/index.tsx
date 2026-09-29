@@ -7,7 +7,6 @@ import { EventCard } from '@/components/study-plan/event-card';
 import { DayCard } from '@/components/study-plan/day-card';
 import { EditEventModal } from '@/components/study-plan/edit-event-modal';
 import { AddEventModal } from '@/components/study-plan/add-event-modal';
-import { EventDetailModal } from '@/components/study-plan/event-detail-modal';
 import { buildImportantEntries, groupEventsByDay, isSameDay } from '@/utils/study-events';
 import { SUBJECT_OPTIONS } from '@/constants/subjects';
 import type { Activity, ImportantEntry, StudyEvent } from '@/types/study-event';
@@ -41,10 +40,6 @@ export default function App() {
   const [selectedEvent, setSelectedEvent] = useState<StudyEvent | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editType, setEditType] = useState('lecture');
-
-  // Detail-Ansicht beim Antippen eines Termins (getrennt vom Bearbeiten-Modal)
-  const [detailVisible, setDetailVisible] = useState(false);
-  const [detailEvent, setDetailEvent] = useState<StudyEvent | null>(null);
 
   // Zusätzliche Tätigkeiten, die demselben Termin zugeordnet werden (gespeichert in event.activities)
   const [extraActivities, setExtraActivities] = useState<Activity[]>([]);
@@ -146,16 +141,6 @@ export default function App() {
     setExtraSubject('');
     setEditingActivityIndex(null);
     setModalVisible(true);
-  };
-
-  const openEventDetail = (item: StudyEvent) => {
-    setDetailEvent(item);
-    setDetailVisible(true);
-  };
-
-  const openEditFromDetail = (item: StudyEvent) => {
-    setDetailVisible(false);
-    openEditModal(item);
   };
 
   // Öffnet den Termin, zu dem eine Tätigkeit aus Countdown/"Wichtige Termine" gehört.
@@ -517,7 +502,6 @@ export default function App() {
                         gridCardWidth={gridCardWidth}
                         onEdit={openEditModal}
                         onDeleteActivity={confirmDeleteActivity}
-                        onPress={openEventDetail}
                       />
                     ))}
                   </View>
@@ -530,7 +514,6 @@ export default function App() {
                       onEdit={openEditModal}
                       onDeleteActivity={confirmDeleteActivity}
                       onAddEvent={openAddEventModal}
-                      onPressEvent={openEventDetail}
                     />
                   ))
                 )}
@@ -577,13 +560,6 @@ export default function App() {
         onAddActivity={addExtraActivity}
         onSave={saveEventDetails}
         saving={savingEvent}
-      />
-
-      <EventDetailModal
-        visible={detailVisible}
-        event={detailEvent}
-        onClose={() => setDetailVisible(false)}
-        onEdit={openEditFromDetail}
       />
 
       <AddEventModal

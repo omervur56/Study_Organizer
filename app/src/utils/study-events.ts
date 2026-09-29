@@ -42,14 +42,6 @@ export const buildImportantEntries = (items: StudyEvent[]): ImportantEntry[] => 
   return entries;
 };
 
-// Moodle-Beschreibungen enthalten Links oft als Fußnoten ("[1] https://...").
-const URL_PATTERN = /https?:\/\/[^\s\]]+/g;
-export const extractLinks = (text?: string | null): string[] => {
-  if (!text) return [];
-  const matches = text.match(URL_PATTERN) || [];
-  return Array.from(new Set(matches));
-};
-
 export const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleString('de-AT', {

@@ -10,30 +10,24 @@ interface EventCardProps {
   gridCardWidth: number;
   onEdit: (event: StudyEvent) => void;
   onDeleteActivity: (event: StudyEvent, activityIndex: number, title: string) => void;
-  onPress?: (event: StudyEvent) => void;
 }
 
-export function EventCard({ event, isGridView, gridCardWidth, onEdit, onDeleteActivity, onPress }: EventCardProps) {
+export function EventCard({ event, isGridView, gridCardWidth, onEdit, onDeleteActivity }: EventCardProps) {
   const displayTitle = event.custom_title || event.title;
   const isExam = event.type === 'exam';
   const isProject = event.type === 'project';
   const isTask = event.type === 'task';
   const isPersonal = event.type === 'personal';
-  const isMoodle = event.type === 'assignment';
 
   return (
-    <TouchableOpacity
-      activeOpacity={onPress ? 0.7 : 1}
-      onPress={() => onPress?.(event)}
-      disabled={!onPress}
+    <View
       style={[
         styles.card,
         isGridView ? [styles.gridCard, { width: gridCardWidth }] : styles.listCard,
         isExam && styles.examCard,
         isProject && styles.projectCard,
         isTask && styles.taskCard,
-        isPersonal && styles.personalCard,
-        isMoodle && styles.moodleCard
+        isPersonal && styles.personalCard
       ]}
     >
       <View style={[styles.cardHeader, isGridView && styles.gridCardHeader]}>
@@ -52,10 +46,10 @@ export function EventCard({ event, isGridView, gridCardWidth, onEdit, onDeleteAc
           {event.location ? <Text style={styles.location} numberOfLines={1}>{event.location}</Text> : null}
         </View>
 
-        {(isExam || isProject || isTask || isPersonal || isMoodle) && (
-          <View style={[styles.examBadge, isProject && styles.projectBadge, isTask && styles.taskBadge, isPersonal && styles.personalBadge, isMoodle && styles.moodleBadge, isGridView && { marginTop: 8 }]}>
+        {(isExam || isProject || isTask || isPersonal) && (
+          <View style={[styles.examBadge, isProject && styles.projectBadge, isTask && styles.taskBadge, isPersonal && styles.personalBadge, isGridView && { marginTop: 8 }]}>
             <Text style={styles.examBadgeText}>
-              {isMoodle ? 'Moodle' : isProject ? 'Projekt' : isTask ? 'Einzelaufgabe' : isPersonal ? 'Privat' : 'Prüfung'}
+              {isProject ? 'Projekt' : isTask ? 'Einzelaufgabe' : isPersonal ? 'Privat' : 'Prüfung'}
             </Text>
           </View>
         )}
@@ -94,6 +88,6 @@ export function EventCard({ event, isGridView, gridCardWidth, onEdit, onDeleteAc
           ))}
         </View>
       )}
-    </TouchableOpacity>
+    </View>
   );
 }

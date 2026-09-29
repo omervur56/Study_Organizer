@@ -13,7 +13,6 @@ export interface StudyEvent {
   end_time?: string;
   location?: string;
   description?: string;
-  course?: string | null;
   activities?: Activity[];
 }
 

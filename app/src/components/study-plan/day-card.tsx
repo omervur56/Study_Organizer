@@ -10,11 +10,10 @@ interface DayCardProps {
   onEdit: (event: StudyEvent) => void;
   onDeleteActivity: (event: StudyEvent, activityIndex: number, title: string) => void;
   onAddEvent: (date: Date) => void;
-  onPressEvent?: (event: StudyEvent) => void;
 }
 
 // Ein Termin (Tag) kann mehrere Ereignisse enthalten (z.B. Uni-Vorlesung + privater Geburtstag).
-export function DayCard({ date, events, onEdit, onDeleteActivity, onAddEvent, onPressEvent }: DayCardProps) {
+export function DayCard({ date, events, onEdit, onDeleteActivity, onAddEvent }: DayCardProps) {
   return (
     <View style={styles.dayCard}>
       <View style={styles.dayCardHeaderRow}>
@@ -30,14 +29,10 @@ export function DayCard({ date, events, onEdit, onDeleteActivity, onAddEvent, on
         const isProject = event.type === 'project';
         const isTask = event.type === 'task';
         const isPersonal = event.type === 'personal';
-        const isMoodle = event.type === 'assignment';
 
         return (
-          <TouchableOpacity
+          <View
             key={event.id}
-            activeOpacity={onPressEvent ? 0.7 : 1}
-            onPress={() => onPressEvent?.(event)}
-            disabled={!onPressEvent}
             style={[
               styles.dayCardEntry,
               index > 0 && styles.dayCardEntryDivider,
@@ -45,7 +40,6 @@ export function DayCard({ date, events, onEdit, onDeleteActivity, onAddEvent, on
               isProject && styles.projectEntry,
               isTask && styles.taskEntry,
               isPersonal && styles.personalEntry,
-              isMoodle && styles.moodleEntry,
             ]}
           >
             <View style={styles.cardHeader}>
@@ -61,18 +55,17 @@ export function DayCard({ date, events, onEdit, onDeleteActivity, onAddEvent, on
                 {event.location ? <Text style={styles.location} numberOfLines={1}>{event.location}</Text> : null}
               </View>
 
-              {(isExam || isProject || isTask || isPersonal || isMoodle) && (
+              {(isExam || isProject || isTask || isPersonal) && (
                 <View
                   style={[
                     styles.examBadge,
                     isProject && styles.projectBadge,
                     isTask && styles.taskBadge,
                     isPersonal && styles.personalBadge,
-                    isMoodle && styles.moodleBadge,
                   ]}
                 >
                   <Text style={styles.examBadgeText}>
-                    {isMoodle ? 'Moodle' : isProject ? 'Projekt' : isTask ? 'Einzelaufgabe' : isPersonal ? 'Privat' : 'Prüfung'}
+                    {isProject ? 'Projekt' : isTask ? 'Einzelaufgabe' : isPersonal ? 'Privat' : 'Prüfung'}
                   </Text>
                 </View>
               )}
@@ -111,7 +104,7 @@ export function DayCard({ date, events, onEdit, onDeleteActivity, onAddEvent, on
                 ))}
               </View>
             )}
-          </TouchableOpacity>
+          </View>
         );
       })}
     </View>

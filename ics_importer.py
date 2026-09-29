@@ -28,10 +28,17 @@ ICS_URL = os.environ.get("ICS_URL") or (
 )
 PERSONAL_ICS_URL = os.environ.get("PERSONAL_ICS_URL")
 
+# Moodle-Kalender-Export (enthält u.a. Abgabefristen von Aufgaben).
+# Link über Moodle -> Kalender -> Zahnrad -> "Diesen Kalender exportieren" erzeugen.
+# Beispiel: export MOODLE_ICS_URL="https://moodle.hochschule-burgenland.at/calendar/export_execute.php?userid=...&authtoken=...&preset_what=all&preset_time=recentupcoming"
+MOODLE_ICS_URL = os.environ.get("MOODLE_ICS_URL")
+
 # Jede Quelle bekommt einen Default-Typ für neu importierte Termine.
 ICS_SOURCES = [{"url": ICS_URL, "default_type": "lecture"}]
 if PERSONAL_ICS_URL:
     ICS_SOURCES.append({"url": PERSONAL_ICS_URL, "default_type": "personal"})
+if MOODLE_ICS_URL:
+    ICS_SOURCES.append({"url": MOODLE_ICS_URL, "default_type": "assignment"})
 
 
 def fetch_ics(url):
@@ -103,6 +110,10 @@ def parse_and_sync(sources):
                 location = str(component.get('location', ''))
                 description = str(component.get('description', ''))
 
+                # Moodle liefert das Kürzel des Kurses (z.B. "BWIF-BB-1-WS2026-BSNT") im CATEGORIES-Feld.
+                categories = component.get('categories')
+                course = ", ".join(str(cat) for cat in categories.cats) if categories else None
+
                 # Jedes Vorkommen eines wiederkehrenden Termins braucht eine eigene ID,
                 # sonst überschreiben sich z.B. alle Jahrgänge eines Geburtstags gegenseitig.
                 event_id = f"{uid}_{start_iso[:10]}" if uid in recurring_uids else uid
@@ -119,7 +130,8 @@ def parse_and_sync(sources):
                     "location": location,
                     "description": description,
                     "type": event_type,
-                    "custom_title": custom_title # NEU: custom title ins upsert einfügen
+                    "custom_title": custom_title, # NEU: custom title ins upsert einfügen
+                    "course": course # NEU: Kurskürzel aus Moodle-CATEGORIES
                 })
 
     # Wiederkehrende Termine (z.B. aus iCloud) können mehrfach mit derselben ID auftauchen,
